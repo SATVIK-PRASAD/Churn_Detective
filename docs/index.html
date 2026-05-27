@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Churn Detective — Telecom Customer Retention & Uplift Strategy</title>
+    <meta name="description" content="An interactive Machine Learning dashboard displaying predictive performance, global churn drivers (SHAP), customer segments, and cost-aware uplift targeting.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="app-sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-user-secret logo-icon"></i>
+                    <span>Churn Detective</span>
+                </div>
+                <button class="close-sidebar-btn" id="close-sidebar-btn" aria-label="Close Sidebar">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="#overview" class="nav-link active" id="nav-overview">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>Executive Summary</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#eda" class="nav-link" id="nav-eda">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i>
+                            <span>Data & EDA</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#modeling" class="nav-link" id="nav-modeling">
+                            <i class="fa-solid fa-brain"></i>
+                            <span>Model Leaderboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#explainability" class="nav-link" id="nav-explainability">
+                            <i class="fa-solid fa-microscope"></i>
+                            <span>SHAP Churn Drivers</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#segmentation" class="nav-link" id="nav-segmentation">
+                            <i class="fa-solid fa-users-viewfinder"></i>
+                            <span>Customer Segments</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#uplift" class="nav-link" id="nav-uplift">
+                            <i class="fa-solid fa-arrows-up-to-line"></i>
+                            <span>Uplift Targeting</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#calculator" class="nav-link" id="nav-calculator">
+                            <i class="fa-solid fa-calculator"></i>
+                            <span>ROI Calculator</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <p>Telemetry Status: <span class="status-indicator online"></span> Ready</p>
+                <p class="footer-version">v1.0.0 | DS Case 4</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-bar">
+                <button class="open-sidebar-btn" id="open-sidebar-btn" aria-label="Open Sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="header-title-container">
+                    <h1 class="header-title" id="main-title">Churn Detective</h1>
+                    <p class="header-subtitle">ML Pipeline for Data-Driven Retention & Uplift Optimization</p>
+                </div>
+                <div class="header-actions">
+                    <a href="https://github.com" target="_blank" class="github-link-btn" id="github-link" aria-label="View on Github">
+                        <i class="fa-brands fa-github"></i> GitHub Pages
+                    </a>
+                </div>
+            </header>
+
+            <!-- Dashboard Sections -->
+            <div class="content-body">
+
+                <!-- 1. Executive Summary -->
+                <section id="overview" class="dashboard-section active-section">
+                    <h2 class="section-title"><i class="fa-solid fa-chart-line text-blue"></i> Executive Summary</h2>
+                    
+                    <!-- KPI Cards Grid -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card purple-gradient">
+                            <div class="kpi-icon"><i class="fa-solid fa-robot"></i></div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Best Classifier</span>
+                                <span class="kpi-value">XGBoost</span>
+                                <span class="kpi-subtext">Tuned Hyperparameters</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card blue-gradient">
+                            <div class="kpi-icon"><i class="fa-solid fa-star"></i></div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">ROC-AUC Score</span>
+                                <span class="kpi-value">0.7324</span>
+                                <span class="kpi-subtext">PR-AUC: 0.5874</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card green-gradient">
+                            <div class="kpi-icon"><i class="fa-solid fa-wallet"></i></div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Net Saved Revenue</span>
+                                <span class="kpi-value" id="kpi-revenue-saved">$102,588</span>
+                                <span class="kpi-subtext">Threshold: 0.19 (Optimized)</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card red-gradient">
+                            <div class="kpi-icon"><i class="fa-solid fa-bullseye"></i></div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Uplift Targets</span>
+                                <span class="kpi-value">899</span>
+                                <span class="kpi-subtext">Persuadables Identified</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Intro Pitch & Hero Image -->
+                    <div class="grid-2col">
+                        <div class="card glass-card">
+                            <h3 class="card-title">The Retentive Mission</h3>
+                            <p>A mid-sized telecom operator was experiencing a chronic customer turnover crisis, losing users at a rate that significantly exceeded industry benchmarks. Historical retention efforts relied on broad, untargeted campaigns that offered discounts to customers who had no intention of leaving, eroding profit margins without stabilizing retention.</p>
+                            <p><strong>The Solution:</strong> This project implements an end-to-end Machine Learning pipeline. Using a 7,000-customer historical dataset, we trained predictive classifiers, interpreted individual churn drivers using SHAP values, grouped churners via behavioral K-Means clustering, and designed a causal <strong>Uplift Model</strong> to isolate and target only the persuadable customers.</p>
+                            <div class="card-bullets">
+                                <div class="bullet-item"><i class="fa-solid fa-check text-green"></i> <span><strong>Precision Targeting</strong>: Avoids wasting budget on "Sure Things" who would stay anyway.</span></div>
+                                <div class="bullet-item"><i class="fa-solid fa-check text-green"></i> <span><strong>ROI Alignment</strong>: Optimizes classification thresholds based on outreach cost ($20) vs. customer LTV.</span></div>
+                            </div>
+                        </div>
+                        <div class="card img-showcase-card">
+                            <img src="assets/hero_bg.png" alt="Churn Detective Brief Title Slide Graphic" class="hero-showcase-img" id="hero-img">
+                            <div class="img-overlay">
+                                <span>Telecom Retention Strategy Briefing</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Data & EDA -->
+                <section id="eda" class="dashboard-section">
+                    <h2 class="section-title"><i class="fa-solid fa-magnifying-glass-chart text-cyan"></i> Data & Exploratory Analysis</h2>
+                    
+                    <div class="grid-3col">
+                        <div class="stat-box">
+                            <span class="stat-number">7,000</span>
+                            <span class="stat-label">Total Customers</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-number">36.16%</span>
+                            <span class="stat-label">Dataset Churn Rate</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-number">2.3% MoM</span>
+                            <span class="stat-label">Active Turnover Crisis</span>
+                        </div>
+                    </div>
+
+                    <div class="grid-2col">
+                        <div class="card glass-card">
+                            <h3 class="card-title">Contract Types: The "Zero Loyalty" Signal</h3>
+                            <p>Month-to-month contracts are the single most significant behavioral indicator of upcoming churn. Month-to-month customers represent **46.75%** of the churn rate, compared to **23.57%** for one-year contract holders and **22.62%** for two-year contract holders.</p>
+                            <p>This massive gap indicates that customers without commitment barriers are highly responsive to competitor offers, making plan conversion campaigns highly profitable.</p>
+                            <div class="chart-container">
+                                <img src="assets/churn_by_contract.png" alt="Churn Rate by Contract Type Chart" class="responsive-plot">
+                            </div>
+                        </div>
+                        
+                        <div class="card glass-card">
+                            <h3 class="card-title">The Early-Life Onboarding Danger Zone</h3>
+                            <p>Customer tenure shows a steep survival curve. The first **12 months** represent a high-risk onboarding zone where churn rates peak at **43.65%**. For customers who survive beyond **36 months**, the churn rate drops by nearly half to **22.48%**.</p>
+                            <p>Early-life customer onboarding audits, customer service follow-ups in month 2 and month 6, and initial milestone rewards are critical to building early product stickiness.</p>
+                            <div class="chart-container">
+                                <img src="assets/churn_by_tenure.png" alt="Churn Rate by Tenure Months Chart" class="responsive-plot">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Model Performance -->
+                <section id="modeling" class="dashboard-section">
+                    <h2 class="section-title"><i class="fa-solid fa-brain text-purple"></i> Predictive Model Leaderboard</h2>
+                    
+                    <div class="card glass-card">
+                        <h3 class="card-title">Multi-Model Stratified Comparison</h3>
+                        <p>We trained and cross-validated multiple classifiers using stratified K-Fold folds. To address class imbalance, the training split was augmented using **SMOTE** (Synthetic Minority Over-sampling Technique). Models were tuned to balance precision and recall, optimizing for out-of-sample cost savings.</p>
+                        
+                        <div class="table-container">
+                            <table class="premium-table" id="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Model Candidate</th>
+                                        <th>ROC-AUC</th>
+                                        <th>PR-AUC</th>
+                                        <th>F1 Score</th>
+                                        <th>Recall</th>
+                                        <th>Brier Score</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="highlighted-row">
+                                        <td><i class="fa-solid fa-circle-check text-green"></i> <strong>XGBoost (Tuned)</strong></td>
+                                        <td>0.7324</td>
+                                        <td>0.5874</td>
+                                        <td>0.5886</td>
+                                        <td>0.6759</td>
+                                        <td>0.2082</td>
+                                        <td><span class="badge badge-green">Deployed</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Stacking Ensemble</td>
+                                        <td>0.8641*</td>
+                                        <td>0.6801*</td>
+                                        <td>0.6185*</td>
+                                        <td>0.6410*</td>
+                                        <td>0.1890*</td>
+                                        <td><span class="badge badge-blue">Candidate</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>LightGBM</td>
+                                        <td>0.8598*</td>
+                                        <td>0.6723*</td>
+                                        <td>0.6044*</td>
+                                        <td>0.6280*</td>
+                                        <td>0.1930*</td>
+                                        <td><span class="badge badge-gray">Standby</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Random Forest</td>
+                                        <td>0.8412*</td>
+                                        <td>0.6455*</td>
+                                        <td>0.5890*</td>
+                                        <td>0.5810*</td>
+                                        <td>0.2110*</td>
+                                        <td><span class="badge badge-gray">Standby</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="table-disclaimer">*Note: Starred entries represent model baseline cross-validation performance. The tuned XGBoost was selected for final production pipeline deployment due to its superior recall balance and well-calibrated output probabilities.</p>
+                    </div>
+                </section>
+
+                <!-- 4. SHAP Churn Drivers -->
+                <section id="explainability" class="dashboard-section">
+                    <h2 class="section-title"><i class="fa-solid fa-microscope text-red"></i> Global Churn Drivers (SHAP)</h2>
+                    
+                    <div class="grid-2col">
+                        <div class="card glass-card">
+                            <h3 class="card-title">SHAP Global Feature Importance</h3>
+                            <p>To avoid black-box prediction, we computed SHAP (SHapley Additive exPlanations) values to determine the exact marginal impact of each feature on individual churn risk. The beeswarm plot to the right summarizes the top churn drivers.</p>
+                            
+                            <div class="driver-list">
+                                <div class="driver-item">
+                                    <div class="driver-rank">1</div>
+                                    <div class="driver-details">
+                                        <h4>Contract Type (Month-to-Month)</h4>
+                                        <p>Customers on month-to-month contracts have the highest positive SHAP values, driving them strongly toward churn due to zero switching barriers.</p>
+                                    </div>
+                                </div>
+                                <div class="driver-item">
+                                    <div class="driver-rank">2</div>
+                                    <div class="driver-details">
+                                        <h4>Tenure (Low Tenure)</h4>
+                                        <p>Low tenure months (first 12 months) show strong negative values on the x-axis, accelerating early-life churn risks.</p>
+                                    </div>
+                                </div>
+                                <div class="driver-item">
+                                    <div class="driver-rank">3</div>
+                                    <div class="driver-details">
+                                        <h4>Support Friction (3+ Calls)</h4>
+                                        <p>High numbers of customer support calls signal active frustration, acting as immediate warnings of contract termination.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card glass-card flex-center">
+                            <h3 class="card-title">SHAP Beeswarm Visualization</h3>
+                            <div class="plot-frame">
+                                <img src="assets/shap_beeswarm.png" alt="SHAP Beeswarm Plot of Feature Impacts on Churn" class="responsive-plot">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. Customer Segments -->
+                <section id="segmentation" class="dashboard-section">
+                    <h2 class="section-title"><i class="fa-solid fa-users-viewfinder text-orange"></i> K-Means Customer Segmentation</h2>
+                    
+                    <div class="grid-2col">
+                        <div class="card glass-card">
+                            <h3 class="card-title">Distinct Behavioral Segments</h3>
+                            <p>Not all customers churn for the same reasons. By isolating predicted churners and applying a K-Means clustering algorithm, we identified three distinct churner profiles. Tailoring campaigns to these specific profiles yields significantly higher conversion rates.</p>
+                            
+                            <div class="segment-cards">
+                                <div class="segment-card-item segment-gold">
+                                    <div class="segment-card-header">
+                                        <h4>💰 Price-Sensitive Churners</h4>
+                                        <span class="segment-pill">Segment 1</span>
+                                    </div>
+                                    <p>Characterized by high monthly charges, month-to-month contracts, and low service adoption. They actively shop for competitor deals.</p>
+                                    <p class="strategy"><strong>Strategy:</strong> Offer a 10-15% discount in exchange for signing a 12-month contract upgrade.</p>
+                                </div>
+                                
+                                <div class="segment-card-item segment-orange">
+                                    <div class="segment-card-header">
+                                        <h4>😤 Service-Frustrated Churners</h4>
+                                        <span class="segment-pill">Segment 2</span>
+                                    </div>
+                                    <p>High volumes of support calls and late payments. They signal unresolved technical issues or poor customer service experiences.</p>
+                                    <p class="strategy"><strong>Strategy:</strong> Proactive outreach from dedicated tech support and a free 3-month tech service bundle.</p>
+                                </div>
+                                
+                                <div class="segment-card-item segment-green">
+                                    <div class="segment-card-header">
+                                        <h4>🆕 Early-Life Churners</h4>
+                                        <span class="segment-pill">Segment 3</span>
+                                    </div>
+                                    <p>New customers with tenure under 12 months, on month-to-month contracts. They did not successfully adopt services during onboarding.</p>
+                                    <p class="strategy"><strong>Strategy:</strong> Emailed onboarding tutorials and a bill credit milestone reward at month 12.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card glass-card flex-center">
+                            <h3 class="card-title">Segment Feature Profile Radar</h3>
+                            <div class="plot-frame">
+                                <img src="assets/segment_profiles.png" alt="K-Means Customer Segment Profiler Radar Chart" class="responsive-plot radar-plot-img">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. Uplift Targeting -->
+                <section id="uplift" class="dashboard-section">
+                    <h2 class="section-title"><i class="fa-solid fa-arrows-up-to-line text-yellow"></i> Uplift Modeling: Target Persuadables</h2>
+                    
+                    <div class="card glass-card">
+                        <h3 class="card-title">Avoiding Margin Cannibalization</h3>
+                        <p>Standard churn prediction models tell us *who* is likely to leave, but not *who* will respond positively to a campaign. Directing outreach to all high-risk users is financially wasteful. Uplift modeling divides customers into four distinct response quadrants to identify the optimal target audience.</p>
+                    </div>
+
+                    <div class="grid-2col">
+                        <div class="card glass-card">
+                            <h3 class="card-title">Response Quadrant Matrix</h3>
+                            <div class="quadrant-grid">
+                                <div class="quad-item target">
+                                    <div class="quad-header"><i class="fa-solid fa-circle-check"></i> Persuadables</div>
+                                    <p class="quad-desc">Will churn without an offer, but stay if contacted.</p>
+                                    <div class="quad-tag">TARGET (899 Customers)</div>
+                                </div>
+                                <div class="quad-item skip-blue">
+                                    <div class="quad-header"><i class="fa-solid fa-circle-minus"></i> Sure Things</div>
+                                    <p class="quad-desc">Will stay regardless of outreach. Offers waste margin.</p>
+                                    <div class="quad-tag">SKIP CAMPAIGN</div>
+                                </div>
+                                <div class="quad-item skip-gray">
+                                    <div class="quad-header"><i class="fa-solid fa-circle-xmark"></i> Lost Causes</div>
+                                    <p class="quad-desc">Will churn regardless. Outreach budget is wasted.</p>
+                                    <div class="quad-tag">SKIP CAMPAIGN</div>
+                                </div>
+                                <div class="quad-item avoid">
+                                    <div class="quad-header"><i class="fa-solid fa-circle-exclamation"></i> Sleeping Dogs</div>
+                                    <p class="quad-desc">Contacting them triggers annoyance, increasing churn risk.</p>
+                                    <div class="quad-tag">AVOID CONTACT</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card glass-card flex-center">
+                            <h3 class="card-title">Churn Risk vs. Uplift Score</h3>
+                            <div class="plot-frame">
+                                <img src="assets/uplift_quadrants.png" alt="Uplift Score vs Churn Probability Scatter Plot" class="responsive-plot">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. ROI Calculator -->
+                <section id="calculator" class="dashboard-section">
+                    <h2 class="section-title"><i class="fa-solid fa-calculator text-green"></i> Campaign ROI Calculator</h2>
+                    
+                    <div class="grid-2col">
+                        <!-- Inputs Card -->
+                        <div class="card glass-card">
+                            <h3 class="card-title">Outreach Assumptions</h3>
+                            <p>Adjust the sliders below to calculate the expected net saved revenue and ROI for the campaign based on model outputs.</p>
+                            
+                            <div class="calculator-inputs">
+                                <div class="input-group">
+                                    <div class="input-labels">
+                                        <label for="input-target-size">Target Campaign Size (Persuadables)</label>
+                                        <span class="value-display" id="display-target-size">899</span>
+                                    </div>
+                                    <input type="range" id="input-target-size" min="100" max="2500" step="50" value="899" class="slider">
+                                </div>
+                                
+                                <div class="input-group">
+                                    <div class="input-labels">
+                                        <label for="input-monthly-charges">Average Monthly Charges ($)</label>
+                                        <span class="value-display" id="display-monthly-charges">$70</span>
+                                    </div>
+                                    <input type="range" id="input-monthly-charges" min="30" max="120" step="5" value="70" class="slider">
+                                </div>
+                                
+                                <div class="input-group">
+                                    <div class="input-labels">
+                                        <label for="input-outreach-cost">Outreach Offer Cost ($ / contact)</label>
+                                        <span class="value-display" id="display-outreach-cost">$20</span>
+                                    </div>
+                                    <input type="range" id="input-outreach-cost" min="5" max="50" step="1" value="20" class="slider">
+                                </div>
+                                
+                                <div class="input-group">
+                                    <div class="input-labels">
+                                        <label for="input-save-rate">Estimated Save Rate (%)</label>
+                                        <span class="value-display" id="display-save-rate">30%</span>
+                                    </div>
+                                    <input type="range" id="input-save-rate" min="5" max="60" step="5" value="30" class="slider">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Outputs Card -->
+                        <div class="card glass-card results-container">
+                            <h3 class="card-title text-center">Estimated Financial Gains</h3>
+                            
+                            <div class="results-grid">
+                                <div class="result-box">
+                                    <span class="result-label">Outreach Campaign Budget</span>
+                                    <span class="result-number text-orange" id="calc-campaign-budget">$17,980</span>
+                                </div>
+                                
+                                <div class="result-box">
+                                    <span class="result-label">Gross Revenue Saved</span>
+                                    <span class="result-number text-blue" id="calc-gross-saved">$226,548</span>
+                                    <span class="result-subtext">Assumes 12 months saved contract LTV</span>
+                                </div>
+                                
+                                <div class="result-divider"></div>
+                                
+                                <div class="result-box featured-result">
+                                    <span class="result-label">Net Saved Revenue (Profit)</span>
+                                    <span class="result-number text-green" id="calc-net-saved">$208,568</span>
+                                    <span class="result-subtext font-weight-bold" id="calc-roi-percentage">ROI: +1160.0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>
